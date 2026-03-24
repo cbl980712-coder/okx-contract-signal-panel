@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>OKX合约判断面板</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei","Segoe UI",sans-serif;background:#0d1117;color:#e6edf3;padding:12px;font-size:13px}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.header h1{font-size:15px;font-weight:700;color:#f0f6fc}
+.search-wrap{position:relative;margin-bottom:8px}
+.si{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#8b949e}
+.search-input{width:100%;padding:8px 12px 8px 30px;background:#161b22;border:1px solid #30363d;border-radius:8px;color:#e6edf3;font-size:13px;outline:none}
+.search-input:focus{border-color:#58a6ff}
+.dropdown{position:absolute;top:100%;left:0;right:0;background:#161b22;border:1px solid #30363d;border-radius:8px;max-height:180px;overflow-y:auto;z-index:999;display:none}
+.dropdown.show{display:block}
+.di{padding:7px 12px;cursor:pointer;display:flex;justify-content:space-between}
+.di:hover{background:#21262d}
+.di .sym{font-weight:600;color:#58a6ff}
+.di .base{color:#8b949e;font-size:11px}
+.period-bar{display:flex;gap:6px;margin-bottom:8px}
+.pb{padding:5px 12px;border-radius:6px;border:1px solid #30363d;background:#161b22;color:#8b949e;cursor:pointer;font-size:12px}
+.pb:hover{border-color:#58a6ff;color:#58a6ff}
+.pb.active{background:#1f6feb;border-color:#1f6feb;color:#fff}
+.cur-sym{display:flex;align-items:center;margin-bottom:8px;padding:6px 10px;background:#161b22;border-radius:8px;border:1px solid #30363d}
+.cur-sym .nm{font-size:14px;font-weight:700}
+.cur-sym .hi{font-size:10px;color:#8b949e;margin-left:6px}
+.cur-sym .ref{margin-left:auto;font-size:11px;color:#8b949e}
+.card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:12px;margin-bottom:8px}
+.ct{font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+.verdict{text-align:center;padding:12px 0}
+.verdict .act{font-size:22px;font-weight:800;margin-bottom:4px}
+.verdict .summ{font-size:11px;color:#8b949e;line-height:1.4}
+.al{color:#3fb950}.as{color:#f85149}.aw{color:#d29922}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-left:6px;vertical-align:middle}
+.bs{background:#0d4429;color:#3fb950}.bm{background:#3d2300;color:#d29922}.bw{background:#1c1c2e;color:#8b949e}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #21262d;font-size:12px}
+.row:last-child{border-bottom:none}
+.rl{color:#8b949e}.rv{font-weight:600}
+.up{color:#3fb950}.dn{color:#f85149}.nt{color:#8b949e}
+.pbox{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.pi{background:#0d1117;border-radius:6px;padding:7px 9px}
+.pl{font-size:9px;color:#8b949e;margin-bottom:2px}
+.pv{font-size:13px;font-weight:700}
+.rlist{list-style:none}
+.rlist li{padding:4px 0;font-size:11px;color:#c9d1d9;border-bottom:1px solid #21262d;display:flex;gap:5px;line-height:1.4}
+.rlist li:last-child{border-bottom:none}
+.rlist li::before{content:"›";color:#58a6ff;font-weight:bold;flex-shrink:0}
+canvas{width:100%;height:60px;display:block}
+.overview-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.section-title{font-size:12px;font-weight:700;padding:4px 0;margin-bottom:6px;border-bottom:1px solid #30363d}
+.section-long{color:#3fb950}.section-short{color:#f85149}
+.ov-item{display:flex;align-items:center;padding:8px 10px;background:#161b22;border:1px solid #30363d;border-radius:8px;margin-bottom:5px;cursor:pointer;transition:all .2s}
+.ov-item:hover{border-color:#58a6ff;background:#1c2128}
+.ov-sym{font-weight:700;font-size:13px;min-width:120px}
+.ov-price{font-size:12px;color:#8b949e;margin-right:auto}
+.ov-score{display:flex;gap:2px;margin-right:8px}
+.ov-dot{width:8px;height:8px;border-radius:50%;background:#30363d}
+.ov-dot.on-long{background:#3fb950}
+.ov-dot.on-short{background:#f85149}
+.ov-rsi{font-size:11px;color:#8b949e;min-width:45px;text-align:right}
+.ov-chg{font-size:11px;min-width:52px;text-align:right;font-weight:600}
+.ov-vol{font-size:10px;color:#484f58;min-width:52px;text-align:right}
+.ov-arrow{font-size:16px;margin-left:6px}
+.ov-loading{text-align:center;padding:30px;color:#8b949e}
+.ov-spinner{width:24px;height:24px;border:2px solid #30363d;border-top-color:#58a6ff;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+.ov-progress{width:100%;height:4px;background:#21262d;border-radius:2px;margin-top:10px}
+.ov-progress-bar{height:4px;background:#1f6feb;border-radius:2px;transition:width .3s}
+.back-btn{padding:5px 14px;background:#21262d;border:1px solid #30363d;border-radius:6px;color:#e6edf3;cursor:pointer;font-size:12px}
+.back-btn:hover{border-color:#58a6ff;color:#58a6ff}
+.ov-empty{text-align:center;padding:16px;color:#8b949e;font-size:12px}
+.ov-stats{font-size:11px;color:#8b949e;margin-bottom:8px}
+.loading{display:flex;align-items:center;justify-content:center;height:80px;color:#8b949e;flex-direction:column;gap:8px}
+.spinner{width:20px;height:20px;border:2px solid #30363d;border-top-color:#58a6ff;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.eb{background:#1c0a0a;border:1px solid #6e2020;border-radius:8px;padding:10px;font-size:11px;color:#f85149}
+.rbtn{padding:5px 12px;background:#1f6feb;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:12px}
+.rbtn:hover{background:#388bfd}
+.rbtn:disabled{opacity:.5}
+.footer{text-align:center;font-size:9px;color:#484f58;margin-top:6px;padding-bottom:4px}
+.calc-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.calc-label{font-size:11px;color:#8b949e;min-width:60px}
+.calc-input{background:#0d1117;border:1px solid #30363d;border-radius:5px;color:#e6edf3;font-size:12px;padding:4px 8px;width:120px;outline:none}
+.calc-input:focus{border-color:#58a6ff}
+input[type=range]{width:120px;accent-color:#1f6feb}
+.tp-select{display:flex;gap:6px}
+.tp-btn{padding:3px 10px;border-radius:5px;border:1px solid #30363d;background:#0d1117;color:#8b949e;cursor:pointer;font-size:11px}
+.tp-btn.sel{background:#1f6feb;border-color:#1f6feb;color:#fff}
+/* v10 新增样式 */
+.aplus-badge{background:linear-gradient(90deg,#b45309,#d97706);color:#fff;border-radius:3px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:4px}
+.tag-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.tag{background:#1c2128;border:1px solid #30363d;border-radius:3px;padding:1px 6px;font-size:10px;color:#8b949e}
+.tag.ok{background:#0d2a18;border-color:#1a4731;color:#3fb950}
+.pos-std{color:#3fb950;font-weight:700}
+.pos-light{color:#d29922;font-weight:700}
+.pos-watch{color:#6e7681;font-weight:600}
+.dur-text{color:#58a6ff;font-size:10px}
+.sim-panel{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:10px;margin-top:8px}
+.sim-title{font-size:11px;color:#58a6ff;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.sim-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.sim-cell{background:#161b22;border-radius:6px;padding:7px 8px;text-align:center}
+.sim-val{font-size:15px;font-weight:700;color:#e6edf3}
+.sim-lbl{font-size:9px;color:#8b949e;margin-top:2px}
+.sim-note{font-size:10px;color:#484f58;margin-top:6px;text-align:center}
+/* Phase B 模拟交易 */
+.simb-panel{background:#0d1117;border:1px solid #1f6feb;border-radius:8px;padding:10px;margin-top:8px}
+.simb-toggle{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.simb-toggle label{font-size:12px;font-weight:700;color:#58a6ff}
+.toggle-switch{position:relative;display:inline-block;width:38px;height:20px}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#30363d;border-radius:20px;transition:.2s}
+.toggle-slider:before{content:"";position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:#8b949e;border-radius:50%;transition:.2s}
+.toggle-switch input:checked+.toggle-slider{background:#1f6feb}
+.toggle-switch input:checked+.toggle-slider:before{transform:translateX(18px);background:#fff}
+.simb-eq{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:6px}
+.simb-eq-cell{background:#161b22;border-radius:5px;padding:5px 6px;text-align:center}
+.simb-pos-table{width:100%;border-collapse:collapse;font-size:10px}
+.simb-pos-table th{color:#484f58;font-weight:400;padding:2px 3px;border-bottom:1px solid #21262d;text-align:left}
+.simb-pos-table td{padding:2px 3px;border-bottom:1px solid #161b22}
+.calc-result{background:#0d1117;border-radius:8px;padding:10px;margin-top:8px}
+.cr-row{display:flex;justify-content:space-between;padding:3px 0;font-size:12px;border-bottom:1px solid #21262d}
+.cr-row:last-child{border-bottom:none}
+.cr-label{color:#8b949e}
+.cr-val{font-weight:700}
+.signal-strong{color:#3fb950}
+.signal-mid{color:#d29922}
+.signal-weak{color:#8b949e}
+.signal-rev{color:#f85149}
+</style>
+</head>
+<body>
+<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#0d2a18;color:#3fb950;font-size:11px;font-family:monospace;padding:3px 10px;text-align:center;letter-spacing:1px">
+  BUILD: 2026-03-24 v10.1 — 模拟盘独立页面 · 面板不再消失
+</div>
+<div style="height:22px"></div>
+
+<!-- 模拟盘独立页面 -->
+<div id="page-simb" style="display:none">
+  <div class="header">
+    <button class="back-btn" onclick="showOverview()">← 返回总览</button>
+    <button class="rbtn" onclick="refreshSimbPanel()">刷新</button>
+  </div>
+  <div id="simb-page-content">
+    <div class="loading"><div class="spinner"></div>加载中...</div>
+  </div>
+</div>
+
+<!-- 总览页 -->
+<div id="page-overview">
+  <div class="header">
+    <h1>📊 合约信号总览</h1>
+    <div style="display:flex;gap:6px">
+      <button id="simb-nav-btn" onclick="showSimbPage()"
+        style="padding:5px 12px;background:#0d2a18;border:1px solid #1f6feb;border-radius:5px;color:#3fb950;cursor:pointer;font-size:12px;font-weight:700">
+        🤖 模拟盘
+      </button>
+      <button class="rbtn" id="ov-rb" onclick="loadOverview()">刷新</button>
+    </div>
+  </div>
+  <!-- 首页也可搜索任意币种直接跳详情 -->
+  <div class="search-wrap">
+    <span class="si">🔍</span>
+    <input class="search-input" id="ov-search" placeholder="搜索任意合约 BTC ETH SOL..." autocomplete="off"
+      oninput="ovSearch()" onfocus="ovFocus()" onblur="ovBlur()">
+    <div class="dropdown" id="ov-dd"></div>
+  </div>
+  <div class="period-bar" id="ov-period-bar">
+    <button class="pb" onclick="setOvPeriod(this,'5m')">5m</button>
+    <button class="pb active" onclick="setOvPeriod(this,'15m')">15m</button>
+    <button class="pb" onclick="setOvPeriod(this,'1h')">1h</button>
+    <button class="pb" onclick="setOvPeriod(this,'4h')">4h</button>
+    <button class="pb" onclick="setOvPeriod(this,'1d')">1d</button>
+  </div>
+  <div id="ov-content"><div class="ov-loading"><div class="ov-spinner"></div>正在扫描Top50合约...</div></div>
+</div>
+
+<!-- 详情页 -->
+<div id="page-detail" style="display:none">
+  <div class="header">
+    <button class="back-btn" onclick="showOverview()">← 返回总览</button>
+    <button class="rbtn" id="rb" onclick="loadData()">刷新</button>
+  </div>
+  <div class="search-wrap">
+    <span class="si">🔍</span>
+    <input class="search-input" id="search" placeholder="搜索币种 BTC ETH SOL..." autocomplete="off"
+      oninput="onSearch()" onfocus="onFocus()" onblur="onBlur()">
+    <div class="dropdown" id="dd"></div>
+  </div>
+  <div class="period-bar">
+    <button class="pb" onclick="setPeriod(this,'5m')">5m</button>
+    <button class="pb active" onclick="setPeriod(this,'15m')">15m</button>
+    <button class="pb" onclick="setPeriod(this,'1h')">1h</button>
+    <button class="pb" onclick="setPeriod(this,'4h')">4h</button>
+    <button class="pb" onclick="setPeriod(this,'1d')">1d</button>
+  </div>
+  <div class="cur-sym">
+    <span class="nm" id="cn">BTCUSDT</span>
+    <span class="hi" id="higher-hint"></span>
+    <span class="ref">搜索框切换币种</span>
+  </div>
+  <div id="live-price-bar" style="display:flex;align-items:center;gap:8px;padding:5px 10px;background:#0d1117;border:1px solid #21262d;border-radius:7px;margin-bottom:8px;min-height:28px">
+    <span style="font-size:10px;color:#484f58">实时市价加载中...</span>
+  </div>
+  <div id="content"><div class="loading"><div class="spinner"></div>正在加载...</div></div>
+</div>
+
+<script>
+// 自动适配本地/公网：本地用绝对地址，其他环境用相对路径
+const API=(location.hostname==='127.0.0.1'||location.hostname==='localhost')?'http://'+location.hostname+':8765':'';
+let sym='BTCUSDT',interval='15m',allSyms=[],autoT=null,priceT=null,curData=null,selTp=1;
+let livePrice=null,liveBid=null,liveAsk=null,livePriceTs=null;
+
+const HIGHER={'5m':'15m','15m':'1h','1h':'4h','4h':'1d','1d':'1w'};
+
+// ---- 实时价格轮询（每4秒，独立于分析接口）----
+async function pollLivePrice(){
+  clearTimeout(priceT);
+  try{
+    const r=await fetch(`${API}/api/price?symbol=${sym}`,{signal:AbortSignal.timeout(3000)});
+    if(r.ok){
+      const p=await r.json();
+      if(p.last_price){
+        livePrice=p.last_price; liveBid=p.bid; liveAsk=p.ask; livePriceTs=p.ts;
+        updateLivePriceDisplay();
+      }
+    }
+  }catch(e){}
+  priceT=setTimeout(pollLivePrice,4000);
+}
+
+function updateLivePriceDisplay(){
+  const el=document.getElementById('live-price-bar');
+  if(!el||livePrice==null)return;
+  let offsetHtml='';
+  if(curData&&curData.close&&livePrice){
+    const pct=((livePrice-curData.close)/curData.close*100);
+    const sign=pct>=0?'+':'';
+    const col=pct>=0?'#3fb950':'#f85149';
+    offsetHtml=`<span style="color:${col};font-size:10px">${sign}${pct.toFixed(2)}%</span>`;
+  }
+  el.innerHTML=`
+    <span style="font-size:10px;color:#484f58">实时市价</span>
+    <span style="font-size:13px;font-weight:700;color:#f0f6fc">${livePrice}</span>
+    ${offsetHtml}
+    <span style="font-size:9px;color:#484f58">bid ${liveBid||'--'} / ask ${liveAsk||'--'}</span>
+    <span style="font-size:9px;color:#484f58;margin-left:auto">${livePriceTs?new Date(livePriceTs).toLocaleTimeString('zh-CN'):''}</span>
+  `;
+}
+
+let cnMap=[];
+async function loadSyms(){
+  try{
+    const ctrl0=new AbortController();setTimeout(()=>ctrl0.abort(),8000);
+    const r=await fetch(API+'/api/symbols',{signal:ctrl0.signal});const d=await r.json();
+    allSyms=d.symbols||[];
+    cnMap=d.cn_map||[];
+  }catch(e){}
+}
+function onSearch(){
+  const raw=document.getElementById('search').value.trim();
+  const q=raw.toUpperCase();
+  const dd=document.getElementById('dd');
+  if(!raw){dd.classList.remove('show');return}
+  // 同时匹配：英文symbol、中文symbol（如"币安人生USDT"）、cn别名
+  const cnHit=cnMap.filter(c=>c.cn.includes(raw)||c.symbol.includes(q)||c.symbol.includes(raw));
+  const cnSyms=new Set(cnHit.map(c=>c.symbol));
+  // allSyms包含中文symbol，同时用原始输入和大写输入匹配
+  const enHit=allSyms.filter(s=>
+    !cnSyms.has(s)&&(s.includes(q)||s.includes(raw))
+  ).slice(0,12);
+  const items=[
+    ...cnHit.map(c=>`<div class="di" onmousedown="pick('${c.symbol}')"><span class="sym">${c.symbol}</span><span class="base">${c.cn}</span></div>`),
+    ...enHit.map(s=>`<div class="di" onmousedown="pick('${s}')"><span class="sym">${s}</span></div>`)
+  ].slice(0,15);
+  if(!items.length){dd.classList.remove('show');return}
+  dd.innerHTML=items.join('');
+  dd.classList.add('show');
+}
+function onFocus(){if(document.getElementById('search').value.trim())onSearch()}
+function onBlur(){setTimeout(()=>document.getElementById('dd').classList.remove('show'),200)}
+function pick(s){sym=s;document.getElementById('cn').textContent=s;document.getElementById('search').value='';document.getElementById('dd').classList.remove('show');loadData();}
+
+// 首页搜索栏（直接跳详情）
+function ovSearch(){
+  const raw=document.getElementById('ov-search').value.trim();
+  const q=raw.toUpperCase();
+  const dd=document.getElementById('ov-dd');
+  if(!raw){dd.classList.remove('show');return}
+  const cnHit=cnMap.filter(c=>c.cn.includes(raw)||c.symbol.includes(q)||c.symbol.includes(raw));
+  const cnSyms=new Set(cnHit.map(c=>c.symbol));
+  const enHit=allSyms.filter(s=>!cnSyms.has(s)&&(s.includes(q)||s.includes(raw))).slice(0,12);
+  const items=[
+    ...cnHit.map(c=>`<div class="di" onmousedown="ovPick('${c.symbol}')"><span class="sym">${c.symbol}</span><span class="base">${c.cn}</span></div>`),
+    ...enHit.map(s=>`<div class="di" onmousedown="ovPick('${s}')"><span class="sym">${s}</span></div>`)
+  ].slice(0,15);
+  if(!items.length){dd.classList.remove('show');return}
+  dd.innerHTML=items.join('');
+  dd.classList.add('show');
+}
+function ovFocus(){if(document.getElementById('ov-search').value.trim())ovSearch()}
+function ovBlur(){setTimeout(()=>document.getElementById('ov-dd').classList.remove('show'),200)}
+function ovPick(s){
+  document.getElementById('ov-search').value='';
+  document.getElementById('ov-dd').classList.remove('show');
+  showDetail(s);
+}
+function setPeriod(el,p){
+  document.querySelectorAll('.pb').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');interval=p;
+  document.getElementById('higher-hint').textContent='大周期参考:'+HIGHER[p];
+  loadData();
+}
+
+async function loadData(){
+  const btn=document.getElementById('rb');btn.disabled=true;btn.textContent='加载中';
+  if(!allSyms.length)await loadSyms();
+  try{
+    const analyzeCtrl=new AbortController();const analyzeTimer=setTimeout(()=>analyzeCtrl.abort(),12000);
+    const r=await fetch(`${API}/api/analyze?symbol=${sym}&interval=${interval}`,{signal:analyzeCtrl.signal});
+    clearTimeout(analyzeTimer);
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    curData=d;render(d);
+  }catch(e){
+    document.getElementById('content').innerHTML=`<div class="eb">⚠️ ${e.message}<br><br>请确认已双击 start_widget.bat 启动服务</div>`;
+  }
+  btn.disabled=false;btn.textContent='刷新';
+  clearTimeout(autoT);autoT=setTimeout(loadData,30000);
+}
+
+function sigClass(g){
+  if(g==='A')return'signal-strong';
+  if(g==='B')return'signal-mid';
+  return'signal-weak';
+}
+function sigBadge(g){
+  if(g==='A')return'bs';if(g==='B')return'bm';return'bw';
+}
+function sigEmoji(g){
+  if(g==='A')return'⭐⭐⭐';if(g==='B')return'⭐⭐';return'⭐';
+}
+function dirClass(t){return t==='多'?'up':t==='空'?'dn':'nt'}
+function cv(v,t=0){return v>t?'up':v<t?'dn':'nt'}
+function fmtSpace(n){
+  // space 专用容错：null/undefined/NaN/0 统一显示 "--"
+  if(n==null||n===undefined) return '--';
+  const v=Number(n);
+  if(isNaN(v)||v===0) return '--';
+  return fmt(v,2);
+}
+function fmt(n,d=2){
+  const v=Number(n);
+  if(v===0||isNaN(v)) return '0.00';
+  const av=Math.abs(v);
+  // 小于0.001用5位有效数字
+  if(av>0&&av<0.001) return parseFloat(v.toPrecision(5)).toString();
+  // 小于1用4位有效数字
+  if(av<1) return parseFloat(v.toPrecision(4)).toString();
+  // 大于等于1正常toFixed
+  return v.toFixed(d);
+}
+function fpct(n){return(Number(n)>=0?'+':'')+Number(n).toFixed(3)+'%'}
+
+function drawChart(id,closes){
+  const c=document.getElementById(id);if(!c)return;
+  const ctx=c.getContext('2d');const W=c.offsetWidth||360,H=60;c.width=W;c.height=H;
+  if(!closes||!closes.length)return;
+  const mn=Math.min(...closes),mx=Math.max(...closes),rng=mx-mn||1;
+  const pts=closes.map((v,i)=>({x:i/(closes.length-1)*W,y:H-((v-mn)/rng)*(H-6)-3}));
+  const up=closes[closes.length-1]>=closes[0];
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,up?'rgba(63,185,80,.35)':'rgba(248,81,73,.35)');
+  g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fillStyle=g;ctx.fill();
+  ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.strokeStyle=up?'#3fb950':'#f85149';ctx.lineWidth=1.5;ctx.stroke();
+}
+
+function calcProfit(){
+  if(!curData)return;
+  const principal=parseFloat(document.getElementById('c-principal').value)||1000;
+  const lev=parseInt(document.getElementById('c-lev').value)||10;
+  const fee=parseFloat(document.getElementById('c-fee').value)||0.10;
+  document.getElementById('c-lev-val').textContent=lev+'x';
+  // 弱信号时用现价+1%/2%/3%估算
+  const entry=curData.entry_price||curData.close;
+  const dir0=curData.trend==='空'?-1:1;
+  const fallback1=entry*(1+dir0*0.01);
+  const fallback2=entry*(1+dir0*0.02);
+  const fallback3=entry*(1+dir0*0.03);
+  const tps=[curData.tp1||fallback1, curData.tp2||fallback2, curData.tp3||fallback3];
+  const tp=tps[selTp-1];
+  if(!tp){document.getElementById('calc-result').innerHTML='<div style="color:#8b949e;font-size:11px;text-align:center">暂无数据</div>';return}
+  const dir=curData.trend==='多'?1:-1;
+  const pct=Math.abs(tp-entry)/entry*100;
+  const openAmt=principal*lev;
+  const gross=openAmt*(pct/100);
+  const feeCost=openAmt*(fee/100)*2;
+  const net=gross-feeCost;
+  const netPct=net/principal*100;
+  const liqPrice=dir===1?entry*(1-0.9/lev):entry*(1+0.9/lev);
+  document.getElementById('calc-result').innerHTML=`
+    <div class="cr-row"><span class="cr-label">开仓金额</span><span class="cr-val">${fmt(openAmt,2)} USDT</span></div>
+    <div class="cr-row"><span class="cr-label">盈利空间</span><span class="cr-val up">+${fmt(pct,3)}%</span></div>
+    <div class="cr-row"><span class="cr-label">毛利润</span><span class="cr-val up">+${fmt(gross,2)} USDT</span></div>
+    <div class="cr-row"><span class="cr-label">手续费</span><span class="cr-val dn">-${fmt(feeCost,2)} USDT</span></div>
+    <div class="cr-row"><span class="cr-label">净利润</span><span class="cr-val ${net>=0?'up':'dn'}">${net>=0?'+':''}${fmt(net,2)} USDT</span></div>
+    <div class="cr-row"><span class="cr-label">净收益率</span><span class="cr-val ${netPct>=0?'up':'dn'}">${netPct>=0?'+':''}${fmt(netPct,2)}%</span></div>
+    <div class="cr-row"><span class="cr-label">预估爆仓价</span><span class="cr-val dn">${fmt(liqPrice,2)}</span></div>
+  `;
+}
+
+function setTp(n){
+  selTp=n;
+  document.querySelectorAll('.tp-btn').forEach((b,i)=>b.classList.toggle('sel',i+1===n));
+  calcProfit();
+}
+
+function render(d){
+  const sg=d.signal_grade||'C';
+  const dl=d.direction_label||'观察';
+  const trend=d.trend||'中性';
+  const showTrade=sg==='A'||sg==='B';
+  const rs=(d.reasons_plain||[]).map(r=>`<li>${r}</li>`).join('')||'<li>暂无判断依据</li>';
+
+  let tradeHtml='';
+  if(showTrade&&d.entry_price){
+    tradeHtml+=`
+    <div class="card">
+      <div class="ct">执行参考</div>
+      <div class="pbox">
+        <div class="pi"><div class="pl">进场价</div><div class="pv">${fmt(d.entry_price,2)}</div></div>
+        <div class="pi"><div class="pl">止损</div><div class="pv dn">${fmt(d.stop_loss,2)}</div></div>
+        <div class="pi"><div class="pl">止盈1</div><div class="pv up">${fmt(d.tp1,2)}</div></div>
+        <div class="pi"><div class="pl">止盈2</div><div class="pv up">${fmt(d.tp2,2)}</div></div>
+        ${d.tp3?`<div class="pi"><div class="pl">止盈3</div><div class="pv up">${fmt(d.tp3,2)}</div></div>`:''}
+        <div class="pi"><div class="pl">盈亏比</div><div class="pv">${d.rr?'1:'+fmt(d.rr,2):'--'}</div></div>
+      </div>
+    </div>`;
+  }
+  const calcEntry=d.entry_price||d.close;
+  const calcTp1=d.tp1||(d.trend==='多'?d.close*(1+0.01):d.close*(1-0.01));
+  const calcTp2=d.tp2||calcTp1;
+  const calcTp3=d.tp3||calcTp1;
+  tradeHtml+=`
+    <div class="card">
+      <div class="ct">💰 收益预估计算器</div>
+      ${!d.entry_price?'<div style="font-size:10px;color:#d29922;margin-bottom:8px">⚠️ C档观察信号，以下为参考估算（基于现价）</div>':''}
+      <div class="calc-row"><span class="calc-label">本金(U)</span><input class="calc-input" id="c-principal" type="number" value="1000" min="1" oninput="calcProfit()"></div>
+      <div class="calc-row"><span class="calc-label">杠杆 <span id="c-lev-val">10x</span></span><input type="range" id="c-lev" min="1" max="100" value="10" oninput="document.getElementById('c-lev-val').textContent=this.value+'x';calcProfit()"></div>
+      <div class="calc-row"><span class="calc-label">手续费%</span><input class="calc-input" id="c-fee" type="number" value="0.10" step="0.01" min="0" oninput="calcProfit()"></div>
+      <div class="calc-row">
+        <span class="calc-label">止盈目标</span>
+        <div class="tp-select">
+          <button class="tp-btn sel" onclick="setTp(1)">止盈1</button>
+          <button class="tp-btn" onclick="setTp(2)">止盈2</button>
+          <button class="tp-btn" onclick="setTp(3)">止盈3</button>
+        </div>
+      </div>
+      <div class="calc-result" id="calc-result"></div>
+    </div>`;
+
+  let gradeHtml='';
+  if(sg==='C'&&dl==='逆势观察'){
+    gradeHtml=`<div class="card" style="border-color:#6e2020"><div style="text-align:center;padding:10px;color:#f85149;font-size:12px">❌ 大小周期方向相反，当前不宜进场<br><span style="color:#8b949e;font-size:11px">等待方向统一后再考虑操作</span></div></div>`;
+  } else if(sg==='C'){
+    gradeHtml=`<div class="card" style="border-color:#3d2300"><div style="text-align:center;padding:10px;color:#d29922;font-size:12px">👀 C档观察信号，条件未达标，建议等待<br><span style="color:#8b949e;font-size:11px">评分/空间/RR满足后才会给出进场建议</span></div></div>`;
+  }
+
+  // 进场区间卡片（含 signal_state / in_exec_window / position_mgmt）
+  const em = d.entry_model;
+  const signalState = d.signal_state || 'none';
+  const inExecWindow = d.in_exec_window || false;
+  const pm = d.position_mgmt;
+  let entryModelHtml = '';
+
+  // active 状态：只显示仓位管理卡
+  if(signalState === 'active' && pm){
+    const pmColor = pm.action.includes('止损')?'#f85149':pm.action.includes('TP')?'#3fb950':pm.action.includes('移本')?'#d29922':'#58a6ff';
+    entryModelHtml = `
+    <div class="card" style="border-color:#1f6feb">
+      <div class="ct">📊 仓位管理（已进场）</div>
+      <div style="background:#0d1f3c;border:1px solid #1f6feb;border-radius:6px;padding:10px;margin-bottom:8px">
+        <div style="font-size:15px;font-weight:700;color:${pmColor};margin-bottom:4px">${pm.action}</div>
+        <div style="font-size:12px;color:#c9d1d9">${pm.detail}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
+        <div style="background:#161b22;border-radius:5px;padding:6px 8px">
+          <div style="font-size:9px;color:#8b949e;margin-bottom:2px">入场参考价</div>
+          <div style="font-size:13px;font-weight:700;color:#f0f6fc">${fmt(d.entry_price,4)}</div>
+        </div>
+        <div style="background:#161b22;border-radius:5px;padding:6px 8px">
+          <div style="font-size:9px;color:#8b949e;margin-bottom:2px">当前止损</div>
+          <div style="font-size:13px;font-weight:700;color:#f85149">${fmt(d.stop_loss,4)}</div>
+        </div>
+        <div style="background:#161b22;border-radius:5px;padding:6px 8px">
+          <div style="font-size:9px;color:#8b949e;margin-bottom:2px">市场价</div>
+          <div style="font-size:13px;font-weight:700;color:#3fb950">${fmt(d.market_price,4)}</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:#8b949e">
+        TP1 <b style="color:#3fb950">${fmt(d.tp1,4)}</b> &nbsp;
+        TP2 <b style="color:#3fb950">${fmt(d.tp2,4)}</b> &nbsp;
+        TP3 <b style="color:#3fb950">${fmt(d.tp3,4)}</b>
+      </div>
+      <div style="font-size:10px;color:#484f58;margin-top:6px">持仓阶段：软失效判断已暂停，只跟踪价格触发</div>
+    </div>`;
+  } else if(em) {
+    const isStale = em.stale_signal || em.execution_tag === '已失效';
+    // 执行窗口内：在卡片顶部加蓝色冻结提示
+    const windowBar = inExecWindow && !isStale ? `
+      <div style="background:#0d1f3c;border:1px solid #1f6feb;border-radius:5px;padding:5px 10px;margin-bottom:8px;font-size:11px;color:#58a6ff">
+        🔒 执行窗口保护中 — 软条件变化不会导致下架，仅硬失效条件有效
+      </div>` : '';
+
+    const tagColor = em.execution_tag==='主交易单'?'#3fb950':
+                     em.execution_tag==='轻仓试单'?'#d29922':
+                     em.execution_tag==='等待回踩'||em.execution_tag==='等待突破确认'?'#58a6ff':
+                     em.execution_tag==='仅观察'?'#8b949e':
+                     em.execution_tag==='风险过高'?'#f85149':'#6e7681';
+    const tagBg    = em.execution_tag==='主交易单'?'#0d2a18':
+                     em.execution_tag==='轻仓试单'?'#2d1a00':
+                     em.execution_tag==='已失效'?'#1c1c1c':'#161b22';
+    const typeLabel = em.entry_type==='market'?'⚡ 市价直进':
+                      em.entry_type==='breakout'?'🔺 突破确认':'🔄 回踩进场';
+    const basisLabel = {'atr_pullback':'ATR回踩区间','support_breakout_confirm':'支撑突破确认',
+                        'resistance_breakout_confirm':'压力突破确认','market_direct':'强信号市价'}[em.entry_zone_basis]||em.entry_zone_basis;
+
+    // 失效强提示
+    const staleBar = isStale ? `
+      <div style="background:#3d0000;border:1px solid #f85149;border-radius:6px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">🚫</span>
+        <span style="color:#f85149;font-size:13px;font-weight:700">当前不可执行 — 信号已失效</span>
+      </div>` : '';
+
+    // 可折叠的执行区（失效时默认折叠）
+    const planId = 'em-plan-' + (Math.random()*99999|0);
+    const collapseBtn = isStale ? `
+      <div style="text-align:center;margin-bottom:6px">
+        <button onclick="document.getElementById('${planId}').style.display=document.getElementById('${planId}').style.display==='none'?'':'none';this.textContent=this.textContent.includes('查看')?'收起原始计划':'查看原始计划（历史参考）'"
+          style="background:#21262d;border:1px solid #30363d;color:#8b949e;font-size:11px;padding:4px 14px;border-radius:5px;cursor:pointer">
+          查看原始计划（历史参考）
+        </button>
+      </div>
+      <div id="${planId}" style="display:none">` : `<div id="${planId}">`;
+
+    entryModelHtml = `
+    <div class="card" style="border-color:${isStale?'#6e2020':inExecWindow?'#1f6feb':'#30363d'}">
+      <div class="ct">🎯 进场执行方案</div>
+      ${windowBar}
+      ${staleBar}
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="background:${tagBg};color:${tagColor};border:1px solid ${tagColor};border-radius:4px;padding:2px 10px;font-size:12px;font-weight:700">${em.execution_tag}</span>
+        <span style="font-size:11px;color:#8b949e">${typeLabel} · ${basisLabel}</span>
+        <span style="font-size:10px;color:#484f58;margin-left:auto">预计持仓 ${em.expected_hold_time}</span>
+      </div>
+      <div style="font-size:11px;color:#c9d1d9;margin-bottom:8px;padding:6px 8px;background:#0d1117;border-radius:5px">
+        💬 ${em.execution_reason}
+      </div>
+      ${collapseBtn}
+        ${isStale?'<div style="font-size:10px;color:#6e7681;text-align:center;margin-bottom:6px">以下为原始计划，仅供历史参考，不建议当前执行</div>':''}
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
+          <div style="background:#161b22;border-radius:5px;padding:6px 8px">
+            <div style="font-size:9px;color:#8b949e;margin-bottom:2px">TP1幅度</div>
+            <div style="font-size:14px;font-weight:700;color:${(em.tp1_pct||0)>=1.2?'#3fb950':(em.tp1_pct||0)>=0.8?'#d29922':'#f85149'}">${em.tp1_pct!=null?em.tp1_pct+'%':'--'}</div>
+          </div>
+          <div style="background:#161b22;border-radius:5px;padding:6px 8px">
+            <div style="font-size:9px;color:#8b949e;margin-bottom:2px">止损幅度</div>
+            <div style="font-size:14px;font-weight:700;color:#f85149">${em.sl_pct!=null?em.sl_pct+'%':'--'}</div>
+          </div>
+          <div style="background:#161b22;border-radius:5px;padding:6px 8px">
+            <div style="font-size:9px;color:#8b949e;margin-bottom:2px">实际RR</div>
+            <div style="font-size:14px;font-weight:700;color:#d29922">${em.rr_real!=null?'1:'+em.rr_real:'--'}</div>
+          </div>
+        </div>
+        ${em.entry_zone?`
+        <div style="font-size:11px;color:#8b949e;margin-bottom:4px">
+          📍 进场区间：<b style="color:#58a6ff">${em.entry_zone[0]}</b> ~ <b style="color:#58a6ff">${em.entry_zone[1]}</b>
+          &nbsp;&nbsp; 失效价：<b style="color:#f85149">${em.entry_zone_invalid_price}</b>
+          &nbsp;&nbsp; 失效上限：${em.entry_zone_invalid_bars}根K线
+        </div>`:''}
+        ${em.entry_type==='breakout'&&em.entry_confirm?`
+        <div style="font-size:11px;color:#8b949e">
+          🔺 突破确认位：<b style="color:#d29922">${em.entry_confirm}</b>
+          &nbsp; 偏离 >&nbsp;0.25ATR即失效
+        </div>`:''}
+        ${em.entry_type==='market'?`<div style="font-size:11px;color:#3fb950">⚡ A+强信号，可按现价直接入场，确认滑点在0.1%内</div>`:''}
+        <div style="font-size:10px;color:#484f58;margin-top:6px">
+          信号年龄 ${em.signal_age_bars} 根K线 · 交易风格 ${em.trade_style}
+        </div>
+      </div>
+    </div>`; // 注：collapseBtn 已含一个开 <div>，这里的 </div> 对应它
+  }
+
+  document.getElementById('content').innerHTML=`
+  <div class="card">
+    <div class="ct">${sym} · ${interval} · 综合判断</div>
+    <div class="verdict">
+      <div class="act ${dirClass(trend)}">
+        ${sigEmoji(sg)} ${dl}
+        <span class="badge ${sigBadge(sg)}">${sg}档</span>
+        ${d.is_aplus?'<span class="aplus-badge">A+</span>':''}
+      </div>
+      <div class="summ">${d.summary||''}</div>
+      ${sg!=='C'&&d.position_suggestion?`<div style="margin-top:6px;font-size:11px">${
+        d.position_suggestion==='标准仓位'?'<span class="pos-std">⚖ 标准仓位</span>':'<span class="pos-light">⚖ 轻仓试探</span>'
+      }${d.signal_duration_text?` &nbsp;<span class="dur-text">⏱ ${d.signal_duration_text}</span>`:''}</div>`:''}
+      ${d.is_aplus&&d.a_plus_reasons&&d.a_plus_reasons.length?`<div class="tag-row" style="justify-content:center;margin-top:5px">${d.a_plus_reasons.map(r=>`<span class="tag ok">${r}</span>`).join('')}</div>`:''}
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">近60根K线</div>
+    <canvas id="mc"></canvas>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="ct">价格结构</div>
+      <div class="row"><span class="rl">信号计算价</span><span class="rv" style="color:#8b949e;font-size:11px">${fmt(d.close||0,2)}<span style="font-size:9px;color:#484f58;margin-left:4px">K线基准</span></span></div>
+      <div class="row"><span class="rl">统一市场价</span><span class="rv" style="color:#f0f6fc;font-weight:700">${fmt(d.market_price||d.close||0,2)}<span style="font-size:9px;color:#3fb950;margin-left:4px">markPrice</span></span></div>
+      <div class="row"><span class="rl">趋势</span><span class="rv ${dirClass(trend)}">${trend}</span></div>
+      <div class="row"><span class="rl">大周期</span><span class="rv ${dirClass(d.higher_trend)}">${d.higher_trend||'--'}</span></div>
+      <div class="row"><span class="rl">状态</span><span class="rv">${d.state||'--'}</span></div>
+      <div class="row"><span class="rl">RSI</span><span class="rv ${d.rsi>55?'up':d.rsi<45?'dn':'nt'}">${fmt(d.rsi||50,1)}</span></div>
+      <div class="row"><span class="rl">支撑</span><span class="rv up">${fmt(d.support||0,2)}</span></div>
+      <div class="row"><span class="rl">压力</span><span class="rv dn">${fmt(d.resistance||0,2)}</span></div>
+    </div>
+    <div class="card">
+      <div class="ct">持仓结构</div>
+      <div class="row"><span class="rl">OI变化</span><span class="rv ${cv(d.oi_change)}">${fpct(d.oi_change||0)}</span></div>
+      <div class="row"><span class="rl">买卖比</span><span class="rv ${cv(d.taker_ratio,1)}">${fmt(d.taker_ratio||1,3)}</span></div>
+      <div class="row"><span class="rl">大户仓位</span><span class="rv ${cv(d.top_pos_ratio,1)}">${fmt(d.top_pos_ratio||1,3)}</span></div>
+      <div class="row"><span class="rl">资金费率</span><span class="rv ${cv(d.last_funding_rate)}">${((d.last_funding_rate||0)*100).toFixed(4)}%</span></div>
+      <div class="row"><span class="rl">费率状态</span><span class="rv">${d.funding_state||'--'}</span></div>
+    </div>
+  </div>
+  ${gradeHtml}
+  ${entryModelHtml}
+  ${tradeHtml}
+  <div class="card">
+    <div class="ct">判断依据</div>
+    <ul class="rlist">${rs}</ul>
+  </div>
+  <div class="footer">更新于 ${new Date((d.timestamp||Date.now()/1000)*1000).toLocaleTimeString('zh-CN')} · 10秒自动刷新 · 仅供参考，非投资建议</div>`;
+
+  requestAnimationFrame(()=>{
+    drawChart('mc',d.chart||[]);
+    if(showTrade&&d.entry_price)calcProfit();
+  });
+}
+
+document.getElementById('higher-hint').textContent='大周期参考:'+HIGHER[interval];
+
+// ========== 总览功能 ==========
+let ovInterval='15m', ovAutoT=null;
+
+function setOvPeriod(el,p){
+  document.querySelectorAll('#ov-period-bar .pb').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');ovInterval=p;loadOverview();
+}
+
+function showOverview(){
+  document.getElementById('page-overview').style.display='';
+  document.getElementById('page-detail').style.display='none';
+  document.getElementById('page-simb').style.display='none';
+  clearTimeout(autoT);
+  clearTimeout(priceT); livePrice=null;
+}
+
+function showDetail(s){
+  sym=s;
+  livePrice=null; // 切换合约时重置实时价
+  document.getElementById('cn').textContent=s;
+  // 同步周期按钮
+  document.querySelectorAll('#page-detail .pb').forEach(b=>{
+    b.classList.toggle('active', b.textContent===interval);
+  });
+  document.getElementById('higher-hint').textContent='大周期参考:'+HIGHER[interval];
+  document.getElementById('page-overview').style.display='none';
+  document.getElementById('page-simb').style.display='none';
+  document.getElementById('page-detail').style.display='';
+  pollLivePrice(); // 切换合约时立即开始实时价格轮询
+  loadData();
+}
+
+function scoreStars(score){
+  const abs=Math.abs(score);
+  const dir=score>0;
+  let dots='';
+  for(let i=0;i<4;i++){
+    dots+=`<div class="ov-dot ${i<abs?(dir?'on-long':'on-short'):''}"></div>`;
+  }
+  return dots;
+}
+
+async function loadOverview(){
+  const btn=document.getElementById('ov-rb');
+  btn.disabled=true;btn.textContent='扫描中';
+  // 显示进度动画
+  document.getElementById('ov-content').innerHTML=`
+    <div class="ov-loading">
+      <div class="ov-spinner"></div>
+      <div id="ov-prog-text">正在扫描Top50合约...</div>
+      <div class="ov-progress"><div class="ov-progress-bar" id="ov-pbar" style="width:0%"></div></div>
+    </div>`;
+  let pct=0;
+  const progTimer=setInterval(()=>{
+    pct=Math.min(pct+1,90);
+    const pb=document.getElementById('ov-pbar');
+    if(pb)pb.style.width=pct+'%';
+  },300);
+  try{
+    const ctrl=new AbortController();
+    const timeoutId=setTimeout(()=>ctrl.abort(),60000);
+    const r=await fetch(`${API}/api/overview?interval=${ovInterval}&top_n=50`,{signal:ctrl.signal});
+    clearTimeout(timeoutId);
+
+    // 排障信息：显示HTTP状态和顶层keys
+    let raw;
+    try{ raw=await r.json(); }
+    catch(je){
+      throw new Error(`JSON解析失败(HTTP ${r.status}): ${je.message}`);
+    }
+
+    // 归一化：兼容 {data:{...}} 和直接 {...} 两种结构
+    const d = (raw && raw.data && raw.data.longs) ? raw.data : raw;
+
+    // 排障面板（顶部小条）
+    const diagKeys = Object.keys(d||{}).join(', ');
+    const diagInfo = `
+      <div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:6px 10px;margin-bottom:8px;font-size:10px;color:#8b949e;line-height:1.8">
+        <b style="color:#58a6ff">🔧 诊断</b>
+        HTTP ${r.status} · API: <code>${API||'(相对路径)'}</code><br>
+        顶层keys: ${diagKeys}<br>
+        longs=${( d.longs||[]).length} shorts=${(d.shorts||[]).length} A+=${(d.aplus||[]).length} C多=${(d.longs_watch||[]).length} C空=${(d.shorts_watch||[]).length}
+      </div>`;
+
+    clearInterval(progTimer);
+    const pb=document.getElementById('ov-pbar');
+    if(pb)pb.style.width='100%';
+
+    setTimeout(()=>{
+      try{
+        renderOverview(d, diagInfo);
+      }catch(re){
+        document.getElementById('ov-content').innerHTML=
+          `<div class="eb">⚠️ 渲染报错: ${re.message}<br><pre style="font-size:10px;white-space:pre-wrap">${re.stack||''}</pre></div>`;
+      }
+    },200);
+  }catch(e){
+    clearInterval(progTimer);
+    document.getElementById('ov-content').innerHTML=
+      `<div class="eb">⚠️ ${e.name==='AbortError'?'扫描超时，请检查网络后重试':e.message}<br>API: ${API||'(相对路径)'}<br>请确认已启动 start_widget.bat</div>`;
+  }finally{
+    // 无论成功失败，一定解除loading状态
+    const btn=document.getElementById('ov-rb');
+    if(btn){btn.disabled=false;btn.textContent='刷新';}
+    clearTimeout(ovAutoT);ovAutoT=setTimeout(loadOverview,300000);
+  }
+}
+
+function renderOverview(d, diagInfo=''){
+  // 所有字段兜底
+  const longs       = (d.longs        || []);
+  const shorts      = (d.shorts       || []);
+  const longsStale  = (d.longs_stale  || []);
+  const shortsStale = (d.shorts_stale || []);
+  const longsWatch  = (d.longs_watch  || []);
+  const shortsWatch = (d.shorts_watch || []);
+  const aplusList   = (d.aplus        || []);
+  const simStats    = (d.sim_stats    || {});
+  const strategyStats = (d.strategy_stats || null);
+  const ts = d.timestamp ? new Date(d.timestamp*1000).toLocaleTimeString('zh-CN') : '--';
+
+  const fmtVol=(v)=>{
+    if(!v) return '';
+    if(v>=1e9) return (v/1e9).toFixed(1)+'B';
+    if(v>=1e6) return (v/1e6).toFixed(0)+'M';
+    return (v/1e3).toFixed(0)+'K';
+  };
+
+  // 仓位建议样式（兜底 "--"）
+  const posHtml=(p)=>{
+    if(!p||p==='--') return '';
+    const cls=p==='标准仓位'?'pos-std':p==='轻仓试探'?'pos-light':'pos-watch';
+    return `<span class="${cls}">⚖ ${p}</span>`;
+  };
+  // 持续时间（兜底空字符串）
+  const durHtml=(t)=>(t&&t!=='--')?`<span class="dur-text">⏱ ${t}</span>`:'';
+
+  // A+优选卡
+  const renderAplusList=(list)=>{
+    if(!list||!list.length) return `<div class="ov-empty" style="color:#6e7681">当前市场暂无满足A+条件的信号<br><span style="font-size:10px">A档信号出现或B档ap评分≥4时自动显示</span></div>`;
+    return list.map(item=>{
+      const sg=(item.signal_grade)||'B';
+      const chg=item.change_pct||0;
+      const chgCls=chg>=0?'up':'dn';
+      const chgStr=(chg>=0?'+':'')+chg.toFixed(2)+'%';
+      const tagsHtml=(item.a_plus_reasons||[]).map(r=>`<span class="tag ok">${r}</span>`).join('');
+      const gradeColor=sg==='A'?'#3fb950':'#d29922';
+      return `
+      <div class="ov-item" style="border-color:#b45309;background:#1a1005" onclick="showDetail('${item.symbol}')">
+        <div style="width:100%">
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
+            <span class="ov-sym" style="color:#f0c040">${item.symbol}</span>
+            <span style="background:${gradeColor};color:#0d1117;border-radius:3px;padding:1px 5px;font-size:10px;font-weight:700">${sg}档</span>
+            <span class="aplus-badge">A+</span>
+            <span style="font-size:10px;color:${item.trend==='多'?'#3fb950':'#f85149'}">${item.direction_label||''}</span>
+            <span class="ov-chg ${chgCls}" style="margin-left:auto">${chgStr}</span>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:#8b949e;margin-bottom:5px">
+            <span>现价 <b style="color:#e6edf3">${fmt(item.close,2)}</b></span>
+            <span>RR <b style="color:#d29922">1:${item.rr||'--'}</b></span>
+            ${fmtSpace(item.space)!='--'?`<span>空间 <b style="color:#58a6ff">${fmtSpace(item.space)}</b></span>`:''}
+            <span>A+评分 <b style="color:#f0c040">${item.a_plus_score||0}/5</b></span>
+            ${posHtml(item.position_suggestion)}
+            ${durHtml(item.signal_duration_text)}
+          </div>
+          <div class="tag-row">${tagsHtml}</div>
+        </div>
+      </div>`;
+    }).join('');
+  };
+
+  // A/B主区信号卡（含 signal_state 标识）
+  const renderMainList=(list,dir)=>{
+    if(!list.length) return `<div class="ov-empty">暂无${dir==='多'?'多头':'空头'} A/B档可执行信号</div>`;
+    return list.map(item=>{
+      const sg=item.signal_grade||'B';
+      const chg=item.change_pct||0;
+      const chgStr=(chg>=0?'+':'')+chg.toFixed(2)+'%';
+      const chgCls=chg>=0?'up':'dn';
+      const volStr=item.qvol?fmtVol(item.qvol):'';
+      const gradeColor=sg==='A'?'#3fb950':'#d29922';
+      const apBadge=item.is_aplus?`<span class="aplus-badge">A+</span>`:'';
+      // execution_tag 颜色（扫描层）
+      const tg=(item.execution_tag||'');
+      const tc=tg.startsWith('持仓中')?'#58a6ff':tg==='主交易单'?'#3fb950':tg==='轻仓试单'?'#d29922':tg.startsWith('等待')?'#58a6ff':'#8b949e';
+      return `
+      <div class="ov-item" onclick="showDetail('${item.symbol}')">
+        <div style="width:100%">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+            <span class="ov-sym ${dir==='多'?'al':'as'}">${item.symbol}</span>
+            <span style="background:${gradeColor};color:#0d1117;border-radius:3px;padding:1px 5px;font-size:10px;font-weight:700">${sg}档</span>
+            ${apBadge}
+            <span style="font-size:10px;color:${dir==='多'?'#3fb950':'#f85149'}">${item.direction_label||''}</span>
+            <span class="ov-chg ${chgCls}" style="margin-left:auto">${chgStr}</span>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:#8b949e">
+            <span>市场价 <b style="color:#e6edf3">${fmt(item.market_price||item.close,2)}</b></span>
+            <span>RR <b style="color:#d29922">1:${item.rr||'--'}</b></span>
+            ${fmtSpace(item.space)!='--'?`<span>空间 <b style="color:#58a6ff">${fmtSpace(item.space)}</b></span>`:''}
+            <span>TP1 <b style="color:${(item.tp1_pct||0)>=1.2?'#3fb950':'#d29922'}">${item.tp1_pct!=null?item.tp1_pct+'%':'--'}</b></span>
+            <span>SL <b style="color:#f85149">${item.sl_pct!=null?item.sl_pct+'%':'--'}</b></span>
+            ${tg?`<span style="color:${tc};font-size:10px">● ${tg}</span>`:''}
+            ${durHtml(item.signal_duration_text)}
+            ${volStr?`<span style="color:#484f58">量 ${volStr}</span>`:''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  };
+
+  // 已失效归档卡（折叠样式）
+  const renderStaleList=(list,dir)=>{
+    if(!list.length) return '';
+    return list.map(item=>{
+      const sg=item.signal_grade||'B';
+      const chg=item.change_pct||0;
+      const chgStr=(chg>=0?'+':'')+chg.toFixed(2)+'%';
+      const chgCls=chg>=0?'up':'dn';
+      return `
+      <div class="ov-item" style="opacity:0.45;border-color:#3d1a1a" onclick="showDetail('${item.symbol}')">
+        <div style="width:100%">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="ov-sym" style="color:#6e7681">${item.symbol}</span>
+            <span style="font-size:10px;color:#6e7681">${sg}档 · 已失效</span>
+            <span style="font-size:10px;color:#8b949e">${item.direction_label||''}</span>
+            <span class="ov-chg ${chgCls}" style="margin-left:auto;font-size:10px">${chgStr}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  };
+
+  // C档观察卡
+  const renderWatchList=(list,dir)=>{
+    if(!list.length) return `<div class="ov-empty" style="color:#555">暂无${dir==='多'?'多头':'空头'}观察信号</div>`;
+    return list.map(item=>{
+      const chg=item.change_pct||0;
+      const chgStr=(chg>=0?'+':'')+chg.toFixed(2)+'%';
+      const chgCls=chg>=0?'up':'dn';
+      return `
+      <div class="ov-item" style="opacity:0.6" onclick="showDetail('${item.symbol}')">
+        <div style="display:flex;align-items:center;gap:6px;width:100%">
+          <span class="ov-sym ${dir==='多'?'al':'as'}" style="opacity:0.7">${item.symbol}</span>
+          <span style="font-size:10px;color:#555">C · ${item.direction_label||'观察'}</span>
+          <span style="font-size:10px;color:#555">评分${item.score||0}/4</span>
+          <span style="font-size:10px;color:#484f58">谨慎观望</span>
+          <span class="ov-chg ${chgCls}" style="margin-left:auto;font-size:10px">${chgStr}</span>
+        </div>
+      </div>`;
+    }).join('');
+  };
+
+  // 模拟统计面板
+  const renderSimPanel=(s)=>{
+    const pct=(v)=>(v!=null&&!isNaN(v))?v+'%':'--';
+    const rrFmt=(v)=>(v!=null&&!isNaN(v))?'1:'+v:'--';
+    if(!s||s.total===0) return '';
+    const winCls = (s.win_rate!=null&&s.win_rate>=50)?'up':'dn';
+    return `
+      <div class="sim-panel">
+        <div class="sim-title">📈 历史模拟快照 <span style="color:#484f58;font-size:10px">（本次启动累计${s.total}条·最近50条）</span></div>
+        <div class="sim-grid">
+          <div class="sim-cell"><div class="sim-val">${s.total||'--'}</div><div class="sim-lbl">总信号数</div></div>
+          <div class="sim-cell"><div class="sim-val ${winCls}">${pct(s.win_rate)}</div><div class="sim-lbl">胜率</div></div>
+          <div class="sim-cell"><div class="sim-val">${rrFmt(s.avg_rr)}</div><div class="sim-lbl">平均RR</div></div>
+          <div class="sim-cell"><div class="sim-val up">${pct(s.tp1_rate)}</div><div class="sim-lbl">TP1命中率</div></div>
+          <div class="sim-cell"><div class="sim-val dn">${pct(s.sl_rate)}</div><div class="sim-lbl">止损率</div></div>
+          <div class="sim-cell"><div class="sim-val">${s.long_count||0}多/${s.short_count||0}空</div><div class="sim-lbl">多空分布</div></div>
+        </div>
+        <div class="sim-note">${s.note||''}</div>
+      </div>`;
+  };
+
+  // Phase A：策略统计对照面板
+  const renderStrategyStats=(st)=>{
+    if(!st||st.total===0) return '';
+    const pct=(v)=>(v!=null&&!isNaN(v))?v+'%':'--';
+    const ev=(v)=>(v!=null&&!isNaN(v))?v:'--';
+    const ov=st.overall||{};
+    const rv=st.rev_overall||{};
+    const cmp=st.comparison||{};
+    const winCls=(w)=>(w!=null&&w>=50)?'up':'dn';
+    const betterBadge=cmp.better?`<span style="background:${cmp.better==='主策略'?'#0d2a18':'#1a0d2e'};color:${cmp.better==='主策略'?'#3fb950':'#c084fc'};border:1px solid currentColor;border-radius:3px;padding:1px 8px;font-size:10px;font-weight:700">${cmp.better}更优</span>`:'';
+
+    // 按维度细分表格
+    const renderSliceTable=(byInterval,byTag,byDir)=>{
+      const slices=[
+        {label:'全部',data:ov},
+        ...Object.entries(byInterval||{}).map(([k,v])=>({label:k,data:v})),
+        ...Object.entries(byTag||{}).map(([k,v])=>({label:k,data:v})),
+        {label:'多单',data:byDir?.['多']||{}},
+        {label:'空单',data:byDir?.['空']||{}},
+      ].filter(s=>s.data&&s.data.total>0);
+      if(!slices.length) return '';
+      return `<table style="width:100%;border-collapse:collapse;font-size:10px;margin-top:6px">
+        <tr style="color:#484f58;border-bottom:1px solid #21262d">
+          <td style="padding:2px 4px">维度</td><td>总数</td><td>胜率</td><td>TP1</td><td>SL率</td><td>avgRR</td><td style="color:#d29922">期望值</td>
+        </tr>
+        ${slices.map(({label,data})=>`
+        <tr style="border-bottom:1px solid #161b22">
+          <td style="padding:2px 4px;color:#8b949e">${label}</td>
+          <td>${data.total||0}</td>
+          <td class="${winCls(data.win_rate)}">${pct(data.win_rate)}</td>
+          <td class="up">${pct(data.tp1_rate)}</td>
+          <td class="dn">${pct(data.sl_rate)}</td>
+          <td>${data.avg_rr!=null?'1:'+data.avg_rr:'--'}</td>
+          <td style="color:${(data.ev||0)>0?'#3fb950':'#f85149'};font-weight:700">${ev(data.ev)}</td>
+        </tr>`).join('')}
+      </table>`;
+    };
+
+    return `
+    <div class="card" style="margin-top:8px;border-color:#1f6feb">
+      <div class="sim-title">📊 策略统计对照系统 <span style="color:#484f58;font-size:10px">（仅统计主交易单/轻仓试单 · 实时跟踪）</span></div>
+
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <div style="flex:1;background:#0d1117;border:1px solid #21262d;border-radius:5px;padding:8px">
+          <div style="font-size:11px;font-weight:700;color:#3fb950;margin-bottom:4px">🎯 主策略</div>
+          <div style="font-size:10px;color:#8b949e;margin-bottom:2px">共 ${ov.total||0} 条 · ${ov.settled||0} 已结算 · ${ov.waiting||0} 待触发 · ${ov.open||0} 持仓中</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin:4px 0">
+            <div style="text-align:center"><div class="${winCls(ov.win_rate)}" style="font-size:14px;font-weight:700">${pct(ov.win_rate)}</div><div style="font-size:9px;color:#484f58">胜率</div></div>
+            <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:#d29922">${ov.avg_rr!=null?'1:'+ov.avg_rr:'--'}</div><div style="font-size:9px;color:#484f58">平均RR</div></div>
+            <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:${(ov.ev||0)>0?'#3fb950':'#f85149'}">${ev(ov.ev)}</div><div style="font-size:9px;color:#484f58">期望值</div></div>
+          </div>
+        </div>
+        <div style="flex:1;background:#0d1117;border:1px solid #21262d;border-radius:5px;padding:8px">
+          <div style="font-size:11px;font-weight:700;color:#c084fc;margin-bottom:4px">🔄 反向策略</div>
+          <div style="font-size:10px;color:#8b949e;margin-bottom:2px">共 ${rv.total||0} 条 · ${rv.settled||0} 已结算 · ${rv.waiting||0} 待触发 · ${rv.open||0} 持仓中</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin:4px 0">
+            <div style="text-align:center"><div class="${winCls(rv.win_rate)}" style="font-size:14px;font-weight:700">${pct(rv.win_rate)}</div><div style="font-size:9px;color:#484f58">胜率</div></div>
+            <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:#d29922">${rv.avg_rr!=null?'1:'+rv.avg_rr:'--'}</div><div style="font-size:9px;color:#484f58">平均RR</div></div>
+            <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:${(rv.ev||0)>0?'#3fb950':'#f85149'}">${ev(rv.ev)}</div><div style="font-size:9px;color:#484f58">期望值</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#0d1117;border:1px solid #21262d;border-radius:5px;padding:6px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;color:#8b949e">对比：</span>
+        ${betterBadge}
+        <span style="font-size:11px;color:#8b949e">${cmp.note||''}</span>
+        <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'':'none'"
+          style="margin-left:auto;background:#21262d;border:1px solid #30363d;color:#8b949e;font-size:10px;padding:2px 10px;border-radius:4px;cursor:pointer">
+          分维度 ▾
+        </button>
+        <div style="display:none;width:100%;margin-top:6px">
+          <div style="font-size:10px;color:#3fb950;margin-bottom:2px">主策略分维度</div>
+          ${renderSliceTable(st.by_interval,st.by_exec_tag,st.by_direction)}
+          <div style="font-size:10px;color:#c084fc;margin:6px 0 2px">反向策略分维度</div>
+          ${renderSliceTable(st.rev_by_interval,null,null)}
+        </div>
+      </div>
+
+      <div style="max-height:180px;overflow-y:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:10px">
+          <tr style="color:#484f58;border-bottom:1px solid #21262d;position:sticky;top:0;background:#0d1117">
+            <td style="padding:2px 3px">币种</td><td>周期</td><td>方向</td><td>tag</td><td>入场</td><td>SL</td><td>TP1</td><td>状态</td><td>结果</td>
+          </tr>
+          ${(st.records||[]).slice(0,30).map(r=>`
+          <tr style="border-bottom:1px solid #161b22" onclick="showDetail('${r.symbol}')">
+            <td style="padding:2px 3px;cursor:pointer;color:#58a6ff">${r.symbol}</td>
+            <td>${r.interval}</td>
+            <td style="color:${r.trend==='多'?'#3fb950':'#f85149'}">${r.trend==='多'?'做多':'做空'}</td>
+            <td style="font-size:9px;color:#d29922">${r.exec_tag||'--'}</td>
+            <td>${r.entry!=null?r.entry:'--'}</td>
+            <td style="color:#f85149">${r.sl!=null?r.sl:'--'}</td>
+            <td style="color:#3fb950">${r.tp1!=null?r.tp1:'--'}</td>
+            <td style="color:${r.state==='open'?'#58a6ff':r.state==='closed'?'#484f58':'#8b949e'}">${r.state}</td>
+            <td style="color:${r.result==='sl'?'#f85149':r.result?'#3fb950':'#484f58'}">${r.result||'-'}</td>
+          </tr>`).join('')}
+        </table>
+      </div>
+      <div class="sim-note">${st.note||''}</div>
+    </div>`;
+  };
+
+  const totalAB = longs.length + shorts.length;
+  const totalStale = longsStale.length + shortsStale.length;
+  document.getElementById('ov-content').innerHTML=`
+    ${diagInfo}
+    <div class="ov-stats">📊 已扫描 ${d.total_scanned||0} 个合约 · ${ovInterval}周期 · ${ts} · 可执行 ${totalAB}个 · A+ ${aplusList.length}个${totalStale?` · 已失效归档 ${totalStale}个`:''}</div>
+
+    ${aplusList.length>0?`
+    <div class="card" style="margin-bottom:8px;border-color:#b45309">
+      <div class="section-title" style="color:#f0c040">⭐ A+ 优选信号（${aplusList.length}个 · 高质量筛选）</div>
+      ${renderAplusList(aplusList)}
+    </div>`:''}
+
+    <div class="card">
+      <div class="section-title section-long">🟢 多头可执行 A/B档（${longs.length}个）</div>
+      ${renderMainList(longs,'多')}
+    </div>
+    <div class="card" style="margin-top:8px">
+      <div class="section-title section-short">🔴 空头可执行 A/B档（${shorts.length}个）</div>
+      ${renderMainList(shorts,'空')}
+    </div>
+
+    ${totalStale>0?`
+    <div class="card" style="margin-top:8px;border-color:#3d1a1a">
+      <div class="section-title" style="color:#6e7681;font-size:11px">🗄️ 已失效归档（${totalStale}个 · 已从主区下架）</div>
+      ${renderStaleList(longsStale,'多')}
+      ${renderStaleList(shortsStale,'空')}
+    </div>`:''}
+
+    <div class="card" style="margin-top:8px;border-color:#2d333b">
+      <div class="section-title" style="color:#555;font-size:11px">👀 多头观察 C档（${longsWatch.length}个，不开单）</div>
+      ${renderWatchList(longsWatch,'多')}
+    </div>
+    <div class="card" style="margin-top:4px;border-color:#2d333b">
+      <div class="section-title" style="color:#555;font-size:11px">👀 空头观察 C档（${shortsWatch.length}个，不开单）</div>
+      ${renderWatchList(shortsWatch,'空')}
+    </div>
+
+    ${renderSimPanel(simStats)}
+    ${strategyStats?renderStrategyStats(strategyStats):''}
+    <div id="simb-placeholder"></div>
+
+    <div class="footer">点击币种查看详情 · 主区=当前可执行 · 失效单已归档 · 策略统计实时跟踪 · 仅供参考非投资建议</div>`;
+}
+
+// 独立拉取策略统计并注入
+async function loadStrategyStats(){
+  try{
+    const r=await fetch(API+'/api/strategy_stats');
+    if(!r.ok) return;
+    const st=await r.json();
+    if(!st||st.total===0) return;
+    window._cachedStrategyStats=st;
+  } catch(e){}
+}
+
+// 独立拉取模拟账户并注入 simb-placeholder
+async function loadSimbPanel(){
+  try{
+    const r=await fetch(API+'/api/sim_account');
+    if(!r.ok) return;
+    const acc=await r.json();
+    // 注入总览页底部占位（保持一个简洁状态条）
+    const el=document.getElementById('simb-placeholder');
+    if(el) el.innerHTML=renderSimbMiniBar(acc);
+    // 注入独立模拟盘页面
+    const pc=document.getElementById('simb-page-content');
+    if(pc) pc.innerHTML=renderSimbPanel(acc);
+    // 更新首页按钮状态
+    updateSimbNavBtn(acc);
+    if(acc.config?.enabled) startSimbPoll(); else stopSimbPoll();
+  } catch(e){}
+}
+
+function renderSimbMiniBar(acc){
+  if(!acc) return '';
+  const cfg=acc.config||{};
+  const enabled=cfg.enabled||false;
+  const eq=acc.total_equity??'--';
+  const upnl=acc.unrealized_pnl??0;
+  const rpnl=acc.realized_pnl??0;
+  const ops=acc.open_positions||[];
+  const pnlColor=(v)=>v>0?'#3fb950':v<0?'#f85149':'#8b949e';
+  return `
+  <div class="simb-panel" style="cursor:pointer" onclick="showSimbPage()">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-size:12px;font-weight:700;color:#58a6ff">🤖 模拟自动交易</span>
+      <span style="font-size:11px;color:${enabled?'#3fb950':'#484f58'};font-weight:700">${enabled?'● 运行中':'○ 已停止'}</span>
+      <span style="font-size:11px;color:#8b949e">总资金 <b style="color:#e6edf3">${eq} U</b></span>
+      <span style="font-size:11px;color:#8b949e">浮动 <b style="color:${pnlColor(upnl)}">${upnl>0?'+':''}${upnl}</b></span>
+      <span style="font-size:11px;color:#8b949e">累计 <b style="color:${pnlColor(rpnl)}">${rpnl>0?'+':''}${rpnl}</b></span>
+      <span style="font-size:11px;color:#8b949e">持仓 <b style="color:#58a6ff">${ops.length}/${cfg.max_positions||5}</b></span>
+      <span style="margin-left:auto;font-size:11px;color:#484f58">点击查看详情 →</span>
+    </div>
+  </div>`;
+}
+
+function updateSimbNavBtn(acc){
+  const btn=document.getElementById('simb-nav-btn');
+  if(!btn) return;
+  const cfg=acc?.config||{};
+  const enabled=cfg.enabled||false;
+  const ops=(acc?.open_positions||[]).length;
+  btn.style.borderColor=enabled?'#3fb950':'#1f6feb';
+  btn.style.color=enabled?'#3fb950':'#58a6ff';
+  btn.innerHTML=`🤖 模拟盘${enabled?` <span style="background:#3fb950;color:#0d1117;border-radius:3px;padding:0 5px;font-size:10px">${ops}仓</span>`:''}`;
+}
+
+function showSimbPage(){
+  document.getElementById('page-overview').style.display='none';
+  document.getElementById('page-detail').style.display='none';
+  document.getElementById('page-simb').style.display='';
+  // 刷新一次数据
+  refreshSimbPanel();
+  // 启动轮询
+  startSimbPoll();
+}
+
+window.onload=async()=>{
+  await loadOverview();
+  setTimeout(async()=>{
+    await loadStrategyStats();
+    if(window._cachedStrategyStats){
+      const existing=document.querySelector('.sim-panel')?.parentElement;
+      if(existing){
+        const statsEl=document.createElement('div');
+        statsEl.innerHTML=renderStrategyStats(window._cachedStrategyStats);
+        existing.parentElement?.insertBefore(statsEl,existing.nextSibling);
+        window._cachedStrategyStats=null;
+      }
+    }
+    await loadSimbPanel();
+  }, 1000);
+};
+
+// =====================================================
+// Phase B：模拟自动交易系统前端
+// =====================================================
+let _simbPollT = null;
+
+function renderSimbPanel(acc){
+  if(!acc) return '';
+  const cfg=acc.config||{};
+  const enabled=cfg.enabled||false;
+  const eq=acc.total_equity??'--';
+  const avail=acc.available_balance??'--';
+  const upnl=acc.unrealized_pnl??0;
+  const rpnl=acc.realized_pnl??0;
+  const today=acc.today_pnl??0;
+  const dd=acc.max_drawdown??0;
+  const wr=acc.win_rate;
+  const ops=acc.open_positions||[];
+  const cls=(acc.closed_positions||[]).slice().reverse();
+  const liqN=acc.liquidation_count||0;
+  const pnlColor=(v)=>v>0?'#3fb950':v<0?'#f85149':'#8b949e';
+
+  const modeLabel={'main':'主策略','reverse':'反向策略','both':'双跑对照'}[cfg.mode]||cfg.mode;
+  const tpLabel={'partial':'分批止盈','tp1_only':'只吃TP1'}[cfg.tp_mode]||'--';
+  const slLabel={'strict':'严格止损','breakeven':'保本上移'}[cfg.sl_mode]||'--';
+
+  const mainOps = ops.filter(p=>p.strategy==='main');
+  const revOps  = ops.filter(p=>p.strategy==='reverse');
+
+  const makeRow = (p) => {
+    const curP   = p._cur_price ?? p.entry_price;
+    const upnl   = p._upnl ?? 0;
+    const upnlPct= p._upnl_pct ?? 0;
+    const upnlStr= (upnl>=0?'+':'')+upnl.toFixed(4);
+    const upnlPctStr= (upnlPct>=0?'+':'')+upnlPct.toFixed(2)+'%';
+    const pnlCol = pnlColor(upnl);
+    const slPct  = p.entry_price>0?Math.abs(p.stop_loss-p.entry_price)/p.entry_price*100:0;
+    const tp1Pct = p.entry_price>0?Math.abs(p.tp1-p.entry_price)/p.entry_price*100:0;
+    const rr     = slPct>0?(tp1Pct/slPct).toFixed(1):'--';
+    return `<tr style="border-bottom:1px solid #21262d">
+      <td style="color:#58a6ff;cursor:pointer;padding:4px 3px" onclick="showDetail('${p.symbol}')">${p.symbol}</td>
+      <td style="padding:4px 3px">${p.interval}</td>
+      <td style="padding:4px 3px;color:${p.trend==='多'?'#3fb950':'#f85149'};font-weight:700">${p.trend==='多'?'多▲':'空▼'}</td>
+      <td style="padding:4px 3px">${p.entry_price}</td>
+      <td style="padding:4px 3px">
+        <span style="color:#e6edf3;font-weight:700">${curP}</span>
+        <span style="color:${pnlCol};font-size:10px;margin-left:3px">${upnlPctStr}</span>
+      </td>
+      <td style="padding:4px 3px;color:#f85149">${p.stop_loss}<span style="color:#484f58;font-size:9px;margin-left:2px">${slPct.toFixed(2)}%</span></td>
+      <td style="padding:4px 3px;color:#3fb950">${p.tp1}<span style="color:#484f58;font-size:9px;margin-left:2px">${tp1Pct.toFixed(2)}%</span></td>
+      <td style="padding:4px 3px;font-size:10px;color:#d29922">1:${rr}</td>
+      <td style="padding:4px 3px;color:${pnlCol};font-weight:700">${upnlStr}</td>
+      <td style="padding:4px 3px;font-size:10px">${p.leverage}x</td>
+    </tr>`;
+  };
+
+  const mainRows = mainOps.map(makeRow).join('');
+  const revRows  = revOps.map(makeRow).join('');
+
+  const tableHeader = `<tr style="color:#484f58;font-size:10px">
+    <th style="padding:3px">币种</th><th>周期</th><th>方向</th><th>入场价</th>
+    <th>现价/涨幅</th><th>止损</th><th>止盈1</th><th>RR</th>
+    <th style="color:#d29922">浮盈(U)</th><th>杠杆</th>
+  </tr>`;
+
+  // 主策略浮盈总计
+  const mainUpnl = mainOps.reduce((s,p)=>s+(p._upnl??0),0);
+  const revUpnl  = revOps.reduce((s,p)=>s+(p._upnl??0),0);
+  const pnlColorFn = (v)=>v>0?'#3fb950':v<0?'#f85149':'#8b949e';
+
+  const hisRows=cls.slice(0,20).map(p=>`<tr>
+    <td style="color:#8b949e;cursor:pointer" onclick="showDetail('${p.symbol}')">${p.symbol}</td>
+    <td>${p.interval}</td>
+    <td style="color:${p.trend==='多'?'#3fb950':'#f85149'}">${p.trend==='多'?'多':'空'}</td>
+    <td style="color:${p.strategy==='main'?'#3fb950':'#c084fc'}">${p.strategy==='main'?'主策略':'反向'}</td>
+    <td style="color:${pnlColor(p.realized_pnl)}">${p.realized_pnl>0?'+':''}${p.realized_pnl}</td>
+    <td style="color:${p.close_reason==='sl'?'#f85149':p.liquidated?'#ff0000':p.close_reason==='tp1'?'#3fb950':'#d29922'}">${p.liquidated?'💀爆仓':p.close_reason||'--'}</td>
+  </tr>`).join('');
+
+  return `
+  <div class="simb-panel" id="simb-main">
+    <div class="simb-toggle">
+      <label>🤖 模拟自动交易</label>
+      <label class="toggle-switch">
+        <input type="checkbox" id="simb-enabled" ${enabled?'checked':''} onchange="simbToggle(this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+      <span style="font-size:11px;color:${enabled?'#3fb950':'#484f58'}">${enabled?'运行中':'已停止'}</span>
+      <button onclick="document.getElementById('simb-cfg').style.display=document.getElementById('simb-cfg').style.display==='none'?'block':'none'"
+        style="margin-left:auto;background:#21262d;border:1px solid #30363d;color:#8b949e;font-size:10px;padding:2px 10px;border-radius:4px;cursor:pointer">
+        ⚙️ 配置
+      </button>
+    </div>
+
+    <div id="simb-cfg" style="display:none;background:#161b22;border-radius:6px;padding:8px;margin-bottom:8px;font-size:11px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <div>
+          <div style="color:#8b949e;margin-bottom:2px">策略模式</div>
+          <select id="sc-mode" style="width:100%;background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:3px;border-radius:4px;font-size:11px">
+            <option value="main" ${cfg.mode==='main'?'selected':''}>主策略</option>
+            <option value="reverse" ${cfg.mode==='reverse'?'selected':''}>反向策略</option>
+            <option value="both" ${cfg.mode==='both'?'selected':''}>双跑对照</option>
+          </select>
+        </div>
+        <div>
+          <div style="color:#8b949e;margin-bottom:2px">初始资金 USDT</div>
+          <input type="number" id="sc-equity" value="${cfg.initial_equity}" min="100" step="100"
+            style="width:100%;background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:3px;border-radius:4px;font-size:11px">
+        </div>
+        <div>
+          <div style="color:#8b949e;margin-bottom:2px">每单保证金 USDT</div>
+          <input type="number" id="sc-margin" value="${cfg.margin_per_trade}" min="10" step="10"
+            style="width:100%;background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:3px;border-radius:4px;font-size:11px">
+        </div>
+        <div>
+          <div style="color:#8b949e;margin-bottom:2px">杠杆倍数</div>
+          <input type="number" id="sc-lev" value="${cfg.leverage}" min="1" max="50"
+            style="width:100%;background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:3px;border-radius:4px;font-size:11px">
+        </div>
+        <div>
+          <div style="color:#8b949e;margin-bottom:2px">最大同时持仓</div>
+          <input type="number" id="sc-maxpos" value="${cfg.max_positions}" min="1" max="20"
+            style="width:100%;background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:3px;border-radius:4px;font-size:11px">
+        </div>
+        <div>
+          <div style="color:#8b949e;margin-bottom:2px">止盈模式</div>
+          <select id="sc-tpmode" style="width:100%;background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:3px;border-radius:4px;font-size:11px">
+            <option value="partial" ${cfg.tp_mode==='partial'?'selected':''}>分批止盈</option>
+            <option value="tp1_only" ${cfg.tp_mode==='tp1_only'?'selected':''}>只吃TP1</option>
+          </select>
+        </div>
+        <div>
+          <div style="color:#8b949e;margin-bottom:2px">止损模式</div>
+          <select id="sc-slmode" style="width:100%;background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:3px;border-radius:4px;font-size:11px">
+            <option value="strict" ${cfg.sl_mode==='strict'?'selected':''}>严格止损</option>
+            <option value="breakeven" ${cfg.sl_mode==='breakeven'?'selected':''}>保本上移(0.8R)</option>
+          </select>
+        </div>
+        <div>
+          <div style="color:#8b949e;margin-bottom:2px">手续费率</div>
+          <input type="number" id="sc-fee" value="${cfg.fee_rate}" min="0" step="0.0001"
+            style="width:100%;background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:3px;border-radius:4px;font-size:11px">
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:4px">
+        <label style="display:flex;align-items:center;gap:4px;color:#8b949e">
+          <input type="checkbox" id="sc-samesym" ${cfg.allow_same_symbol?'checked':''}>同币重复开仓
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;color:#8b949e">
+          <input type="checkbox" id="sc-samedir" ${cfg.allow_add_same_dir?'checked':''}>同方向加仓
+        </label>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button onclick="simbSaveConfig(false)"
+          style="flex:1;background:#1f6feb;border:none;color:#fff;padding:5px;border-radius:5px;cursor:pointer;font-size:11px">保存配置</button>
+        <button onclick="simbSaveConfig(true)"
+          style="flex:1;background:#da3633;border:none;color:#fff;padding:5px;border-radius:5px;cursor:pointer;font-size:11px">保存并重置账户</button>
+      </div>
+    </div>
+
+    <div class="simb-eq">
+      <div class="simb-eq-cell">
+        <div style="font-size:14px;font-weight:700;color:#e6edf3">${eq}</div>
+        <div style="font-size:9px;color:#484f58">总资金 USDT</div>
+      </div>
+      <div class="simb-eq-cell">
+        <div style="font-size:14px;font-weight:700;color:${pnlColor(today)}">${today>0?'+':''}${today}</div>
+        <div style="font-size:9px;color:#484f58">今日盈亏</div>
+      </div>
+      <div class="simb-eq-cell">
+        <div style="font-size:14px;font-weight:700;color:${pnlColor(rpnl)}">${rpnl>0?'+':''}${rpnl}</div>
+        <div style="font-size:9px;color:#484f58">累计盈亏</div>
+      </div>
+      <div class="simb-eq-cell">
+        <div style="font-size:14px;font-weight:700;color:#f85149">${dd}%</div>
+        <div style="font-size:9px;color:#484f58">最大回撤</div>
+      </div>
+      <div class="simb-eq-cell">
+        <div style="font-size:14px;font-weight:700;color:${pnlColor(upnl)}">${upnl>0?'+':''}${upnl}</div>
+        <div style="font-size:9px;color:#484f58">浮动盈亏</div>
+      </div>
+      <div class="simb-eq-cell">
+        <div style="font-size:14px;font-weight:700;color:${(wr||0)>=50?'#3fb950':'#f85149'}">${wr!=null?wr+'%':'--'}</div>
+        <div style="font-size:9px;color:#484f58">胜率</div>
+      </div>
+      <div class="simb-eq-cell">
+        <div style="font-size:14px;font-weight:700;color:#58a6ff">${ops.length}/${cfg.max_positions||5}</div>
+        <div style="font-size:9px;color:#484f58">持仓/上限</div>
+      </div>
+      <div class="simb-eq-cell">
+        <div style="font-size:14px;font-weight:700;color:#484f58">${acc.closed_count||0}</div>
+        <div style="font-size:9px;color:#484f58">已平仓</div>
+      </div>
+      <div class="simb-eq-cell">
+        <div style="font-size:14px;font-weight:700;color:${liqN>0?'#ff0000':'#484f58'}">${liqN}</div>
+        <div style="font-size:9px;color:#484f58">💀爆仓次数</div>
+      </div>
+    </div>
+
+    <div style="font-size:10px;color:#8b949e;margin-bottom:8px">
+      模式：<b style="color:#d29922">${modeLabel}</b> &nbsp;
+      保证金：<b>${cfg.margin_per_trade}U×${cfg.leverage}x=${cfg.margin_per_trade*cfg.leverage}U名义</b> &nbsp;
+      止盈：<b>${tpLabel}</b> &nbsp; 止损：<b>${slLabel}</b>
+    </div>
+
+    <!-- ===== 主策略板块 ===== -->
+    <div style="background:#0d1117;border:1px solid #1a4731;border-radius:8px;padding:10px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span style="font-size:13px;font-weight:700;color:#3fb950">📂 主策略持仓</span>
+        <span style="background:#0d2a18;color:#3fb950;border:1px solid #1a4731;border-radius:4px;padding:1px 8px;font-size:11px">${mainOps.length} 仓</span>
+        <span style="font-size:12px;font-weight:700;color:${pnlColorFn(mainUpnl)};margin-left:auto">${mainUpnl>=0?'+':''}${mainUpnl.toFixed(4)} U</span>
+      </div>
+      ${mainOps.length>0?`
+      <div style="overflow-x:auto">
+        <table class="simb-pos-table">${tableHeader}${mainRows}</table>
+      </div>`:`<div style="font-size:11px;color:#484f58;text-align:center;padding:12px 0">暂无主策略持仓</div>`}
+    </div>
+
+    <!-- ===== 反向策略板块 ===== -->
+    ${cfg.mode==='both'||cfg.mode==='reverse'?`
+    <div style="background:#0d1117;border:1px solid #3b1f5e;border-radius:8px;padding:10px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span style="font-size:13px;font-weight:700;color:#c084fc">🔄 反向策略持仓</span>
+        <span style="background:#1a0d2e;color:#c084fc;border:1px solid #3b1f5e;border-radius:4px;padding:1px 8px;font-size:11px">${revOps.length} 仓</span>
+        <span style="font-size:10px;color:#484f58">方向与主策略相反</span>
+        <span style="font-size:12px;font-weight:700;color:${pnlColorFn(revUpnl)};margin-left:auto">${revUpnl>=0?'+':''}${revUpnl.toFixed(4)} U</span>
+      </div>
+      ${revOps.length>0?`
+      <div style="overflow-x:auto">
+        <table class="simb-pos-table">${tableHeader}${revRows}</table>
+      </div>`:`<div style="font-size:11px;color:#484f58;text-align:center;padding:12px 0">暂无反向策略持仓（下次扫描自动跟单）</div>`}
+    </div>`:''}
+
+    <!-- ===== 历史成交 ===== -->
+    ${cls.length>0?`
+    <details>
+      <summary style="font-size:10px;color:#8b949e;cursor:pointer;margin-bottom:4px">📋 历史成交（最近${Math.min(cls.length,20)}条）▾</summary>
+      <div style="overflow-x:auto">
+        <table class="simb-pos-table">
+          <tr><th>币种</th><th>周期</th><th>方向</th><th>策略</th><th>盈亏</th><th>结果</th></tr>
+          ${hisRows}
+        </table>
+      </div>
+    </details>`:''}
+  </div>`;
+}
+
+async function simbToggle(enabled){
+  try{
+    const r=await fetch(API+'/api/sim_config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled})});
+    const d=await r.json();
+    if(d.ok){
+      if(enabled) startSimbPoll(); else stopSimbPoll();
+      await refreshSimbPanel();
+    }
+  }catch(e){}
+}
+
+async function simbSaveConfig(reset=false){
+  const cfg={
+    mode:              document.getElementById('sc-mode')?.value||'main',
+    initial_equity:    parseFloat(document.getElementById('sc-equity')?.value||10000),
+    margin_per_trade:  parseFloat(document.getElementById('sc-margin')?.value||100),
+    leverage:          parseInt(document.getElementById('sc-lev')?.value||10),
+    max_positions:     parseInt(document.getElementById('sc-maxpos')?.value||5),
+    tp_mode:           document.getElementById('sc-tpmode')?.value||'partial',
+    sl_mode:           document.getElementById('sc-slmode')?.value||'strict',
+    fee_rate:          parseFloat(document.getElementById('sc-fee')?.value||0.0005),
+    allow_same_symbol: document.getElementById('sc-samesym')?.checked||false,
+    allow_add_same_dir:document.getElementById('sc-samedir')?.checked||false,
+    reset,
+  };
+  try{
+    const r=await fetch(API+'/api/sim_config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(cfg)});
+    const d=await r.json();
+    if(d.ok) await refreshSimbPanel();
+  }catch(e){}
+}
+
+async function refreshSimbPanel(){
+  try{
+    const r=await fetch(API+'/api/sim_account');
+    if(!r.ok) return;
+    const acc=await r.json();
+    // 更新独立页面
+    const pc=document.getElementById('simb-page-content');
+    if(pc){
+      pc.innerHTML=renderSimbPanel(acc);
+    }
+    // 更新总览底部mini bar
+    const el=document.getElementById('simb-placeholder');
+    if(el) el.innerHTML=renderSimbMiniBar(acc);
+    // 更新首页按钮
+    updateSimbNavBtn(acc);
+  }catch(e){}
+}
+
+function startSimbPoll(){
+  if(_simbPollT) return;
+  _simbPollT=setInterval(refreshSimbPanel, 10000);
+}
+function stopSimbPoll(){
+  if(_simbPollT){clearInterval(_simbPollT);_simbPollT=null;}
+}
+</script>
+</body>
+</html>
